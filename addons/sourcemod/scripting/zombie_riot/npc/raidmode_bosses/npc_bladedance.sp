@@ -46,14 +46,12 @@ static const char g_VoidedHurtSound[][] = {
 
 #define BLADEDANCE_VOIDED 777
 
-static int NPCId;
-static int NPCId2;
 
 void RaidbossBladedance_MapStart()
 {
 	PrecacheModel("models/effects/combineball.mdl");
 	
-	NPCData data;
+NPCData data;
 	strcopy(data.Name, sizeof(data.Name), "Bladedance The Betrayed");
 	strcopy(data.Plugin, sizeof(data.Plugin), "npc_bladedance");
 	strcopy(data.Icon, sizeof(data.Icon), "");
@@ -62,7 +60,7 @@ void RaidbossBladedance_MapStart()
 	data.Category = Type_Raid;
 	data.Func = ClotSummon;
 	data.Precache = ClotPrecache;
-	NPCId = NPC_Add(data);
+	NPC_Add(data);
 
 	// Voided variant - different precache
 	strcopy(data.Name, sizeof(data.Name), "Voided Bladedance");
@@ -72,7 +70,7 @@ void RaidbossBladedance_MapStart()
 	data.Category = Type_Hidden;
 	data.Func = ClotSummon;
 	data.Precache = ClotPrecache_Voided;
-	NPCId2 = NPC_Add(data);
+	NPC_Add(data);
 }
 
 static void ClotPrecache()
