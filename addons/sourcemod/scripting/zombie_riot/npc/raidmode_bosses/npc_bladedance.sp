@@ -31,16 +31,28 @@ static const char g_RangedSpecialAttackSoundsSecondary[][] = {
 	"npc/combine_soldier/vo/prison_soldier_fallback_b4.wav"
 };
 
+// Voided-specific sounds (using same sounds for now, but separate arrays for future customization)
+static const char g_VoidedDeathSounds[][] = {
+	"npc/combine_soldier/die1.wav",
+	"npc/combine_soldier/die2.wav",
+	"npc/combine_soldier/die3.wav"
+};
+
+static const char g_VoidedHurtSound[][] = {
+	"npc/combine_soldier/pain1.wav",
+	"npc/combine_soldier/pain2.wav",
+	"npc/combine_soldier/pain3.wav"
+};
+
+#define BLADEDANCE_VOIDED 777
+
+static int NPCId;
+static int NPCId2;
+
 void RaidbossBladedance_MapStart()
 {
 	PrecacheModel("models/effects/combineball.mdl");
-	for (int i = 0; i < (sizeof(g_DeathSounds));	   i++) { PrecacheSound(g_DeathSounds[i]);	   }
-	for (int i = 0; i < (sizeof(g_IdleSound));	i++) { PrecacheSound(g_IdleSound[i]);	}
-	for (int i = 0; i < (sizeof(g_HurtSound));	i++) { PrecacheSound(g_HurtSound[i]);	}
-	for (int i = 0; i < (sizeof(g_IdleAlertedSounds));	i++) { PrecacheSound(g_IdleAlertedSounds[i]);	}
-	for (int i = 0; i < (sizeof(g_RangedAttackSounds));	i++) { PrecacheSound(g_RangedAttackSounds[i]);	}
-	for (int i = 0; i < (sizeof(g_RangedSpecialAttackSoundsSecondary));	i++) { PrecacheSound(g_RangedSpecialAttackSoundsSecondary[i]);	}
-
+	
 	NPCData data;
 	strcopy(data.Name, sizeof(data.Name), "Bladedance The Betrayed");
 	strcopy(data.Plugin, sizeof(data.Plugin), "npc_bladedance");
@@ -49,7 +61,38 @@ void RaidbossBladedance_MapStart()
 	data.Flags = 0;
 	data.Category = Type_Raid;
 	data.Func = ClotSummon;
-	NPC_Add(data);
+	data.Precache = ClotPrecache;
+	NPCId = NPC_Add(data);
+
+	// Voided variant - different precache
+	strcopy(data.Name, sizeof(data.Name), "Voided Bladedance");
+	strcopy(data.Plugin, sizeof(data.Plugin), "npc_voided_bladedance");
+	data.IconCustom = false;
+	data.Flags = -1;
+	data.Category = Type_Hidden;
+	data.Func = ClotSummon;
+	data.Precache = ClotPrecache_Voided;
+	NPCId2 = NPC_Add(data);
+}
+
+static void ClotPrecache()
+{
+	for (int i = 0; i < (sizeof(g_DeathSounds));	   i++) { PrecacheSound(g_DeathSounds[i]);	   }
+	for (int i = 0; i < (sizeof(g_IdleSound));	i++) { PrecacheSound(g_IdleSound[i]);	}
+	for (int i = 0; i < (sizeof(g_HurtSound));	i++) { PrecacheSound(g_HurtSound[i]);	}
+	for (int i = 0; i < (sizeof(g_IdleAlertedSounds));	i++) { PrecacheSound(g_IdleAlertedSounds[i]);	}
+	for (int i = 0; i < (sizeof(g_RangedAttackSounds));	i++) { PrecacheSound(g_RangedAttackSounds[i]);	}
+	for (int i = 0; i < (sizeof(g_RangedSpecialAttackSoundsSecondary));	i++) { PrecacheSound(g_RangedSpecialAttackSoundsSecondary[i]);	}
+}
+
+static void ClotPrecache_Voided()
+{
+	for (int i = 0; i < (sizeof(g_VoidedDeathSounds));	   i++) { PrecacheSound(g_VoidedDeathSounds[i]);	   }
+	for (int i = 0; i < (sizeof(g_IdleSound));	i++) { PrecacheSound(g_IdleSound[i]);	}
+	for (int i = 0; i < (sizeof(g_VoidedHurtSound));	i++) { PrecacheSound(g_VoidedHurtSound[i]);	}
+	for (int i = 0; i < (sizeof(g_IdleAlertedSounds));	i++) { PrecacheSound(g_IdleAlertedSounds[i]);	}
+	for (int i = 0; i < (sizeof(g_RangedAttackSounds));	i++) { PrecacheSound(g_RangedAttackSounds[i]);	}
+	for (int i = 0; i < (sizeof(g_RangedSpecialAttackSoundsSecondary));	i++) { PrecacheSound(g_RangedSpecialAttackSoundsSecondary[i]);	}
 }
 
 static any ClotSummon(int client, float vecPos[3], float vecAng[3], int team, const char[] data)
@@ -73,7 +116,14 @@ methodmap RaidbossBladedance < CClotBody
 	}
 	public void PlayHurtSound()
 	{
-		EmitSoundToAll(g_HurtSound[GetRandomInt(0, sizeof(g_HurtSound) - 1)], this.index, SNDCHAN_VOICE, BOSS_ZOMBIE_SOUNDLEVEL, _, BOSS_ZOMBIE_VOLUME);
+		if(i_RaidGrantExtra[this.index] == BLADEDANCE_VOIDED)
+		{
+			EmitSoundToAll(g_VoidedHurtSound[GetRandomInt(0, sizeof(g_VoidedHurtSound) - 1)], this.index, SNDCHAN_VOICE, BOSS_ZOMBIE_SOUNDLEVEL, _, BOSS_ZOMBIE_VOLUME);
+		}
+		else
+		{
+			EmitSoundToAll(g_HurtSound[GetRandomInt(0, sizeof(g_HurtSound) - 1)], this.index, SNDCHAN_VOICE, BOSS_ZOMBIE_SOUNDLEVEL, _, BOSS_ZOMBIE_VOLUME);
+		}
 	}
 	public void PlayRangedSound()
 	{
@@ -81,7 +131,14 @@ methodmap RaidbossBladedance < CClotBody
 	}
 	public void PlayDeathSound() 
 	{
-		EmitSoundToAll(g_DeathSounds[GetRandomInt(0, sizeof(g_DeathSounds) - 1)], this.index, SNDCHAN_VOICE, BOSS_ZOMBIE_SOUNDLEVEL, _, BOSS_ZOMBIE_VOLUME);
+		if(i_RaidGrantExtra[this.index] == BLADEDANCE_VOIDED)
+		{
+			EmitSoundToAll(g_VoidedDeathSounds[GetRandomInt(0, sizeof(g_VoidedDeathSounds) - 1)], this.index, SNDCHAN_VOICE, BOSS_ZOMBIE_SOUNDLEVEL, _, BOSS_ZOMBIE_VOLUME);
+		}
+		else
+		{
+			EmitSoundToAll(g_DeathSounds[GetRandomInt(0, sizeof(g_DeathSounds) - 1)], this.index, SNDCHAN_VOICE, BOSS_ZOMBIE_SOUNDLEVEL, _, BOSS_ZOMBIE_VOLUME);
+		}
 	}
 	public void PlayKilledEnemySound() 
 	{
@@ -121,6 +178,7 @@ methodmap RaidbossBladedance < CClotBody
 		public get()							{ return fl_AbilityOrAttack[this.index][0]; }
 		public set(float TempValueForProperty) 	{ fl_AbilityOrAttack[this.index][0] = TempValueForProperty; }
 	}
+	
 	public RaidbossBladedance(float vecPos[3], float vecAng[3], int ally, const char[] data)
 	{
 		RaidbossBladedance npc = view_as<RaidbossBladedance>(CClotBody(vecPos, vecAng, COMBINE_CUSTOM_2_MODEL, "1.25", "1500000", ally, false));
@@ -143,13 +201,18 @@ methodmap RaidbossBladedance < CClotBody
 		npc.m_iNpcStepVariation = STEPTYPE_COMBINE;
 		npc.m_bDissapearOnDeath = true;
 
+		// Check if voided (same way Alaxios checks for seainfection)
+		if(StrContains(data, "voided") != -1)
+		{
+			i_RaidGrantExtra[npc.index] = BLADEDANCE_VOIDED;
+		}
 		
 		bool final = StrContains(data, "final_item") != -1;
 		
 		if(Rogue_HasNamedArtifact("Ascension Stack"))
 			final = false;
 		
-		if(final)
+		if(final && i_RaidGrantExtra[npc.index] != BLADEDANCE_VOIDED)
 		{
 			i_RaidGrantExtra[npc.index] = 1;
 		}
@@ -172,13 +235,22 @@ methodmap RaidbossBladedance < CClotBody
 		SetVariantString("1.25");
 		AcceptEntityInput(npc.m_iWearable1, "SetModelScale");
 		
-		npc.m_iWearable2 = npc.EquipItem("forward", "models/workshop/player/items/all_class/fall17_jungle_wreath/fall17_jungle_wreath_spy.mdl");//"models/player/items/spy/spy_cardhat.mdl");
+		npc.m_iWearable2 = npc.EquipItem("forward", "models/workshop/player/items/all_class/fall17_jungle_wreath/fall17_jungle_wreath_spy.mdl");
 		SetVariantString("1.25");
 		AcceptEntityInput(npc.m_iWearable2, "SetModelScale");
 
-		SetEntityRenderColor(npc.m_iWearable1, 255, 55, 55, 255);
-
-		SetEntityRenderColor(npc.m_iWearable2, 255, 55, 55, 255);
+		// Set colors based on variant (same structure as Alaxios)
+		if(i_RaidGrantExtra[npc.index] == BLADEDANCE_VOIDED)
+		{
+			SetEntityRenderColor(npc.index, 150, 100, 200, 255);
+			SetEntityRenderColor(npc.m_iWearable1, 150, 100, 200, 255);
+			SetEntityRenderColor(npc.m_iWearable2, 150, 100, 200, 255);
+		}
+		else
+		{
+			SetEntityRenderColor(npc.m_iWearable1, 255, 55, 55, 255);
+			SetEntityRenderColor(npc.m_iWearable2, 255, 55, 55, 255);
+		}
 		
 		EmitSoundToAll("npc/zombie_poison/pz_alert1.wav", _, _, _, _, 1.0);	
 		EmitSoundToAll("npc/zombie_poison/pz_alert1.wav", _, _, _, _, 1.0);	
@@ -194,9 +266,18 @@ methodmap RaidbossBladedance < CClotBody
 		AcceptEntityInput(npc.index, "SetBodyGroup");
 
 		RaidModeScaling = 0.0;
-		RaidModeTime = GetGameTime() + ((300.0) * (1.0 + (MultiGlobalEnemy * 0.4)));
+		RaidModeTime = GetGameTime() + ((450.0) * (1.0 + (MultiGlobalEnemy * 0.4)));
 		Format(WhatDifficultySetting, sizeof(WhatDifficultySetting), "??????????????????????????????????");
-		CPrintToChatAll("{crimson}Bladedance{default}: How did you get here? Why are you attacking me?? More void creatures?");
+		
+		// Different intro text based on variant
+		if(i_RaidGrantExtra[npc.index] == BLADEDANCE_VOIDED)
+		{
+		CPrintToChatAll("{white}Bob the First{default}: Blade...?");
+            CPrintToChatAll("{purple}Voided Bladedance{default}: Bob...? {crimson}Help me.");		}
+		else
+		{
+			CPrintToChatAll("{crimson}Bladedance{default}: How did you get here? Why are you attacking me?? More void creatures?");
+		}
 
 		RaidBossActive = EntIndexToEntRef(npc.index);
 		RaidAllowsBuildings = true;
@@ -281,15 +362,31 @@ public void RaidbossBladedance_ClotThink(int iNPC)
 			
 			npc.PlayRangedSpecialAttackSecondarySound(vecTarget);
 			npc.AddGesture("ACT_BLADEDANCE_BUFF");
-			switch(GetRandomInt(1,3))
+			
+			// Different dialogue for voided variant
+			if(i_RaidGrantExtra[npc.index] == BLADEDANCE_VOIDED)
 			{
-				case 1:
-					CPrintToChatAll("{crimson}Bladedance{default}: My copies, go!");
-				case 2:
-					CPrintToChatAll("{crimson}Bladedance{default}: I god damn hate fighting, get out!");
-				case 3:
-					CPrintToChatAll("{crimson}Bladedance{default}: Wish you could lose at the casino i once owned!");
-
+				switch(GetRandomInt(1,3))
+				{
+					case 1:
+                        CPrintToChatAll("{purple}Voided Bladedance{default}: The void... forces me to call upon thee..");
+                    case 2:
+                        CPrintToChatAll("{purple}Voided Bladedance{default}: Embrace them.");
+                    case 3:
+                        CPrintToChatAll("{purple}Voided Bladedance{default} can feel his soul quivering in pain.");
+				}
+			}
+			else
+			{
+				switch(GetRandomInt(1,3))
+				{
+					case 1:
+						CPrintToChatAll("{crimson}Bladedance{default}: My copies, go!");
+					case 2:
+						CPrintToChatAll("{crimson}Bladedance{default}: I god damn hate fighting, get out!");
+					case 3:
+						CPrintToChatAll("{crimson}Bladedance{default}: Wish you could lose at the casino i once owned!");
+				}
 			}
 			
 			npc.m_flDoingAnimation = gameTime + 0.9;
@@ -300,7 +397,16 @@ public void RaidbossBladedance_ClotThink(int iNPC)
 
 			float pos[3];
 			GetEntPropVector(npc.index, Prop_Data, "m_vecAbsOrigin", pos);
-			ParticleEffectAt(pos, "utaunt_bubbles_glow_orange_parent", 0.5);
+			
+			// Different particle effect for voided
+			if(i_RaidGrantExtra[npc.index] == BLADEDANCE_VOIDED)
+			{
+				ParticleEffectAt(pos, "utaunt_bubbles_glow_purple_parent", 0.5);
+			}
+			else
+			{
+				ParticleEffectAt(pos, "utaunt_bubbles_glow_orange_parent", 0.5);
+			}
 
 			int team = GetTeam(npc.index);
 			int a, entity;
@@ -309,7 +415,15 @@ public void RaidbossBladedance_ClotThink(int iNPC)
 				if(!b_NpcHasDied[entity] && GetTeam(entity) == team)
 				{
 					ApplyStatusEffect(npc.index, entity, "Godly Motivation", 16.0);
-					ParticleEffectAt(pos, "utaunt_bubbles_glow_orange_parent", 0.5);
+					
+					if(i_RaidGrantExtra[npc.index] == BLADEDANCE_VOIDED)
+					{
+						ParticleEffectAt(pos, "utaunt_bubbles_glow_purple_parent", 0.5);
+					}
+					else
+					{
+						ParticleEffectAt(pos, "utaunt_bubbles_glow_orange_parent", 0.5);
+					}
 				}
 			}
 			
@@ -331,7 +445,15 @@ public void RaidbossBladedance_ClotThink(int iNPC)
 				npc.FireRocket(vPredictedPos, 1000.0, 400.0, "models/effects/combineball.mdl");
 				npc.PlayRangedSound();
 
-				Elemental_AddNervousDamage(npc.m_iTarget, npc.index, 200);
+				// Voided variant applies void damage
+				if(i_RaidGrantExtra[npc.index] == BLADEDANCE_VOIDED)
+				{
+					Elemental_AddVoidDamage(npc.m_iTarget, npc.index, 200);
+				}
+				else
+				{
+					Elemental_AddNervousDamage(npc.m_iTarget, npc.index, 200);
+				}
 			}
 		}
 	}
@@ -441,7 +563,17 @@ public Action RaidbossBladedance_OnTakeDamage(int victim, int &attacker, int &in
 			npc.m_flBladedanceAngerResistance = 1.0;
 			ApplyStatusEffect(npc.index, npc.index, "Very Defensive Backup", 25.0);
 			ApplyStatusEffect(npc.index, npc.index, "Godly Motivation", 40.0);
-			CPrintToChatAll("{crimson}Bladedance{default}: You have seen nothing i say! Im the least of your worries!");
+			
+			// Different dialogue for voided variant
+			if(i_RaidGrantExtra[npc.index] == BLADEDANCE_VOIDED)
+			{
+				CPrintToChatAll("{purple}Voided Bladedance{default}: I must... resist.. {purple} \nGet them.");
+			}
+			else
+			{
+				CPrintToChatAll("{crimson}Bladedance{default}: You have seen nothing i say! Im the least of your worries!");
+			}
+			
 			npc.DispatchParticleEffect(npc.index, "hightower_explosion", NULL_VECTOR, NULL_VECTOR, NULL_VECTOR, npc.FindAttachment("eyes"), PATTACH_POINT_FOLLOW, true);
 		}
 	}
@@ -465,7 +597,15 @@ public void RaidbossBladedance_NPCDeath(int entity)
 	Format(WhatDifficultySetting, sizeof(WhatDifficultySetting), "%s",WhatDifficultySetting_Internal);
 	WavesUpdateDifficultyName();
 	
-	if(i_RaidGrantExtra[npc.index] == 1 && GameRules_GetRoundState() == RoundState_ZombieRiot)
+	// Different death dialogue based on variant (same structure as Alaxios)
+	if(i_RaidGrantExtra[npc.index] == BLADEDANCE_VOIDED)
+	{
+	CPrintToChatAll("{purple}Voided Bladedance{default}: Ugh... my head...");
+        CPrintToChatAll("{crimson}Bladedance{default} runs in selfish horror of his own mistakes.");
+            CPrintToChatAll("{white}Bob the First{default} WAIT!");
+                    CPrintToChatAll("{allies} Bob crumbles in his own emotion. He too, runs in a opposite. \n{red}Irln stood still.");
+	}
+	else if(i_RaidGrantExtra[npc.index] == 1 && GameRules_GetRoundState() == RoundState_ZombieRiot)
 	{
 		CPrintToChatAll("{crimson}Bladedance{default}: You and Bob the first.. you both missunderstand who the enemy is.. its {white}Whiteflower{default} you fools! He betrayed {crimson}Guln{default} aswell!");
 		CPrintToChatAll("{crimson}Bladedance{default} escapes from you... and gains the ability to copy {crimson}you.");
@@ -490,6 +630,7 @@ public void RaidbossBladedance_NPCDeath(int entity)
 		}
 		Waves_ClearWaves();
 	}
+	
 	if(IsValidEntity(npc.m_iWearable1))
 		RemoveEntity(npc.m_iWearable1);
 	
