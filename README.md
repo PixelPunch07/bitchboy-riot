@@ -55,7 +55,7 @@ shared/convars.sp
  - Give money or remove money from said person or group
 
 "zr_setwave" 
-- Will set the wave to the number given +1
+- Will set the wave to the number given +1 fuck you pixel
 
 "sm_spawn_npc" 
 - Any id will spawn the specific npc on where you look, check code to see which number equals which npc
