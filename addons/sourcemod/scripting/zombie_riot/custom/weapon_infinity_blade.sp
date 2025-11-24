@@ -264,12 +264,12 @@ public void InfinityBlade_Reload(int client, int weapon, bool crit, int slot)
 	}
 	else
 	{
-		// fire forward if no target
-		float forward[3];
-		GetAngleVectors(clientAng, forward, NULL_VECTOR, NULL_VECTOR);
-		targetPos[0] = clientPos[0] + forward[0] * 1000.0;
-		targetPos[1] = clientPos[1] + forward[1] * 1000.0;
-		targetPos[2] = clientPos[2] + forward[2] * 1000.0;
+		// Fire forward if no target
+		float forwardVec[3];
+		GetAngleVectors(clientAng, forwardVec, NULL_VECTOR, NULL_VECTOR);
+		targetPos[0] = clientPos[0] + forwardVec[0] * 1000.0;
+		targetPos[1] = clientPos[1] + forwardVec[1] * 1000.0;
+		targetPos[2] = clientPos[2] + forwardVec[2] * 1000.0;
 	}
 	
 	float damage = 200.0;
@@ -388,3 +388,4 @@ public void InfinityBlade_Think(int client)
 	
 	InfinityBlade_DisplayHud(client);
 }
+
