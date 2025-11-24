@@ -293,7 +293,6 @@ public void InfinityBlade_Reload(int client, int weapon, bool crit, int slot)
 			true,			// bool changeAngles
 			ang_Look);		// float AnglesInitiate[3]
 		
-		SDKUnhook(projectile, SDKHook_StartTouch, Wand_Projectile_Touch);
 		SDKHook(projectile, SDKHook_StartTouch, InfinityBlade_Rocket_Touch);
 		
 		EmitSoundToAll(g_RocketSounds[GetRandomInt(0, sizeof(g_RocketSounds) - 1)], client, SNDCHAN_AUTO, NORMAL_ZOMBIE_SOUNDLEVEL, _, BOSS_ZOMBIE_VOLUME);
@@ -388,4 +387,5 @@ public void InfinityBlade_Think(int client)
 	
 	InfinityBlade_DisplayHud(client);
 }
+
 
